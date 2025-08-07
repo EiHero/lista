@@ -49,42 +49,31 @@
   </table>
 
   <script>
+    // 🛒 Produtos embutidos diretamente no código
+    const produtos = [
+      { nome: "película de vidro", preco: 15.00, estoque: 3 },
+      { nome: "carregador turbo", preco: 45.00, estoque: 4 },
+      { nome: "capa silicone", preco: 19.90, estoque: 10 },
+      { nome: "fone JBL", preco: 89.90, estoque: 0 }
+    ];
+
+    // 🔄 Preencher tabela automaticamente
     const tabela = document.getElementById("tabelaProdutos");
 
-    async function carregarProdutos() {
-      try {
-        const resposta = await fetch("produtos.txt");
-        const texto = await resposta.text();
-        const linhas = texto.trim().split("\n");
-
-        const produtos = [];
-
-        for (let i = 1; i < linhas.length; i++) {
-          const [nome, preco, estoque] = linhas[i].split(',');
-          produtos.push({
-            nome: nome.trim(),
-            preco: parseFloat(preco),
-            estoque: parseInt(estoque)
-          });
-        }
-
-        tabela.innerHTML = '';
-        produtos.forEach(p => {
-          const linha = document.createElement('tr');
-          linha.innerHTML = `
-            <td>${p.nome}</td>
-            <td>${p.preco.toFixed(2)}</td>
-            <td>${p.estoque}</td>
-          `;
-          tabela.appendChild(linha);
-        });
-      } catch (erro) {
-        console.error("Erro ao carregar produtos.txt:", erro);
-        tabela.innerHTML = '<tr><td colspan="3">Erro ao carregar os produtos.</td></tr>';
-      }
+    function atualizarTabela() {
+      tabela.innerHTML = '';
+      produtos.forEach(p => {
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+          <td>${p.nome}</td>
+          <td>R$ ${p.preco.toFixed(2)}</td>
+          <td>${p.estoque}</td>
+        `;
+        tabela.appendChild(linha);
+      });
     }
 
-    window.onload = carregarProdutos;
+    window.onload = atualizarTabela;
   </script>
 </body>
 </html>
