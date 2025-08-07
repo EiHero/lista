@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Carregar Produtos</title>
+  <title>Lista de Produtos</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,9 +13,7 @@
     }
     h1 {
       text-align: center;
-    }
-    input[type="file"] {
-      margin: 10px 0;
+      color: #333;
     }
     table {
       width: 100%;
@@ -25,6 +23,7 @@
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
+      text-align: left;
     }
     th {
       background-color: #007bff;
@@ -37,7 +36,6 @@
 </head>
 <body>
   <h1>Lista de Produtos</h1>
-  <input type="file" id="uploadTxt" accept=".txt,.csv" />
 
   <table>
     <thead>
@@ -53,16 +51,16 @@
   <script>
     const tabela = document.getElementById("tabelaProdutos");
 
-    document.getElementById("uploadTxt").addEventListener("change", function (e) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
+    async function carregarProdutos() {
+      try {
+        const resposta = await fetch("produtos.txt");
+        const texto = await resposta.text();
+        const linhas = texto.trim().split("\n");
 
-      reader.onload = function (event) {
-        const lines = event.target.result.trim().split('\n');
         const produtos = [];
 
-        for (let i = 1; i < lines.length; i++) {
-          const [nome, preco, estoque] = lines[i].split(',');
+        for (let i = 1; i < linhas.length; i++) {
+          const [nome, preco, estoque] = linhas[i].split(',');
           produtos.push({
             nome: nome.trim(),
             preco: parseFloat(preco),
@@ -70,21 +68,23 @@
           });
         }
 
-        // Atualizar a tabela
         tabela.innerHTML = '';
         produtos.forEach(p => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
+          const linha = document.createElement('tr');
+          linha.innerHTML = `
             <td>${p.nome}</td>
             <td>${p.preco.toFixed(2)}</td>
             <td>${p.estoque}</td>
           `;
-          tabela.appendChild(row);
+          tabela.appendChild(linha);
         });
-      };
+      } catch (erro) {
+        console.error("Erro ao carregar produtos.txt:", erro);
+        tabela.innerHTML = '<tr><td colspan="3">Erro ao carregar os produtos.</td></tr>';
+      }
+    }
 
-      reader.readAsText(file);
-    });
+    window.onload = carregarProdutos;
   </script>
 </body>
 </html>
