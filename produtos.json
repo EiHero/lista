@@ -1,0 +1,6 @@
+[
+  { "nome": "película de vidro", "preco": 15.00, "estoque": 3 },
+  { "nome": "carregador turbo", "preco": 45.00, "estoque": 4 },
+  { "nome": "capa silicone", "preco": 19.90, "estoque": 10 },
+  { "nome": "fone JBL", "preco": 89.90, "estoque": 0 }
+]
