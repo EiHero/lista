@@ -1,48 +1,9 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista de Produtos</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carregar Produtos</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -52,29 +13,9 @@
     }
     h1 {
       text-align: center;
-      color: #333;
     }
-    .form-container {
-      margin-bottom: 20px;
-      padding: 15px;
-      background-color: #f4f4f4;
-      border-radius: 5px;
-    }
-    .form-container input {
-      margin: 5px;
-      padding: 8px;
-      width: 200px;
-    }
-    .form-container button {
-      padding: 8px 16px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .form-container button:hover {
-      background-color: #218838;
+    input[type="file"] {
+      margin: 10px 0;
     }
     table {
       width: 100%;
@@ -84,7 +25,6 @@
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
-      text-align: left;
     }
     th {
       background-color: #007bff;
@@ -97,13 +37,9 @@
 </head>
 <body>
   <h1>Lista de Produtos</h1>
-  <div class="form-container">
-    <input type="text" id="nome" placeholder="Nome do Produto" required>
-    <input type="number" id="preco" placeholder="Preço" step="0.01" required>
-    <input type="number" id="estoque" placeholder="Estoque" required>
-    <button onclick="adicionarProduto()">Adicionar Produto</button>
-  </div>
-  <table id="tabelaProdutos">
+  <input type="file" id="uploadTxt" accept=".txt,.csv" />
+
+  <table>
     <thead>
       <tr>
         <th>Nome</th>
@@ -111,57 +47,44 @@
         <th>Estoque</th>
       </tr>
     </thead>
-    <tbody id="corpoTabela"></tbody>
+    <tbody id="tabelaProdutos"></tbody>
   </table>
 
   <script>
-    // Produtos embutidos diretamente no código
-    let produtos = [
-      { nome: "tela wk", preco: 166.00, estoque: 2 }
-   <script>
-    // Produtos embutidos diretamente no código
-    let produtos =[
-      { nome: "tela iphone 15 wk", preco: 666.00, estoque: 1 }
-    ];
+    const tabela = document.getElementById("tabelaProdutos");
 
-    // Atualizar a tabela ao carregar a página
-    window.onload = function() {
-      atualizarTabela();
-    };
+    document.getElementById("uploadTxt").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
 
-    function adicionarProduto() {
-      const nome = document.getElementById('nome').value;
-      const preco = parseFloat(document.getElementById('preco').value);
-      const estoque = parseInt(document.getElementById('estoque').value);
+      reader.onload = function (event) {
+        const lines = event.target.result.trim().split('\n');
+        const produtos = [];
 
-      if (nome && !isNaN(preco) && !isNaN(estoque)) {
-        produtos.push({ nome, preco, estoque });
-        atualizarTabela();
-        limparFormulario();
-      } else {
-        alert('Por favor, preencha todos os campos corretamente.');
-      }
-    }
+        for (let i = 1; i < lines.length; i++) {
+          const [nome, preco, estoque] = lines[i].split(',');
+          produtos.push({
+            nome: nome.trim(),
+            preco: parseFloat(preco),
+            estoque: parseInt(estoque)
+          });
+        }
 
-    function atualizarTabela() {
-      const corpoTabela = document.getElementById('corpoTabela');
-      corpoTabela.innerHTML = '';
-      produtos.forEach(produto => {
-        const linha = document.createElement('tr');
-        linha.innerHTML = `
-          <td>${produto.nome}</td>
-          <td>${produto.preco.toFixed(2)}</td>
-          <td>${produto.estoque}</td>
-        `;
-        corpoTabela.appendChild(linha);
-      });
-    }
+        // Atualizar a tabela
+        tabela.innerHTML = '';
+        produtos.forEach(p => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${p.nome}</td>
+            <td>${p.preco.toFixed(2)}</td>
+            <td>${p.estoque}</td>
+          `;
+          tabela.appendChild(row);
+        });
+      };
 
-    function limparFormulario() {
-      document.getElementById('nome').value = '';
-      document.getElementById('preco').value = '';
-      document.getElementById('estoque').value = '';
-    }
+      reader.readAsText(file);
+    });
   </script>
 </body>
 </html>
