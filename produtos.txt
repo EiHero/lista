@@ -1,0 +1,4 @@
+Nome,Preço,Estoque
+tela wk,166.00,2
+fone bt,89.90,5
+cabo usb-c,25.00,12
